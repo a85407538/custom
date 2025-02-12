@@ -33,7 +33,7 @@ body {
 .header button {
     padding: 8px 15px;
     background-color: #ffffff; /* Boutons blancs */
-    color: transparent !important; /* Texte bleu */
+    color: #ffcb20 !important; /* Texte bleu */
     border: none;
     border-radius: 5px;
     cursor: pointer;
