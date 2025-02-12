@@ -24,7 +24,7 @@ body {
     display: flex;
     justify-content: flex-end;
     padding: 10px;
-    background-color: #007bff; /* Fond bleu pour le header */
+    background-color: transparent !important; /* Fond bleu pour le header */
     border-bottom: 1px solid #ddd;
     flex-wrap: wrap; /* Permettre le retour à la ligne sur mobile */
     gap: 10px; /* Espacement entre les boutons */
@@ -33,7 +33,7 @@ body {
 .header button {
     padding: 8px 15px;
     background-color: #ffffff; /* Boutons blancs */
-    color: #007bff; /* Texte bleu */
+    color: transparent !important; /* Texte bleu */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -88,7 +88,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #007bff;
+    background-color: #ffcb20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -114,7 +114,7 @@ body {
 }
 
 .message.user .message-content {
-    background-color: #007bff; /* Fond bleu pour les messages de l'utilisateur */
+    background-color: #ffcb20; /* Fond bleu pour les messages de l'utilisateur */
     color: #ffffff; /* Texte blanc */
     border-bottom-right-radius: 0;
 }
@@ -151,7 +151,7 @@ body {
 
 #send-btn {
     padding: 10px 15px;
-    background-color: #007bff;
+    background-color: #ffcb20;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -219,14 +219,14 @@ ul, ol {
 }
 
 blockquote {
-    border-left: 4px solid #007bff;
+    border-left: 4px solid #ffcb20;
     padding-left: 10px;
     color: #333;
     margin: 10px 0;
 }
 
 a {
-    color: #007bff;
+    color: #ffcb20;
     text-decoration: none;
 }
 
@@ -252,7 +252,7 @@ img {
     position: absolute;
     top: 0;
     left: 0;
-    color: #007bff;
+    color: #ffcb20;
     font-size: 14px;
     animation: typing 1.5s infinite;
 }
@@ -308,7 +308,7 @@ img {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: #007bff; /* Fond bleu pour le header */
+    background-color: #ffcb20; /* Fond bleu pour le header */
     border-bottom: 1px solid #ddd;
 }
 
@@ -320,7 +320,7 @@ img {
 
 .dropbtn {
     background-color: #ffffff;
-    color: #007bff;
+    color: #ffcb20;
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -339,7 +339,7 @@ img {
 }
 
 .dropdown-content a {
-    color: #007bff;
+    color: #ffcb20;
     padding: 10px;
     text-decoration: none;
     display: block;
@@ -362,7 +362,7 @@ img {
 
 .desktop-buttons button {
     background-color: #ffffff;
-    color: #007bff;
+    color: #ffcb20;
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -414,7 +414,7 @@ img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #007bff;
+    background-color: #ffcb20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -440,7 +440,7 @@ img {
 }
 
 .message.user .message-content {
-    background-color: #007bff; /* Fond bleu pour les messages de l'utilisateur */
+    background-color: #ffcb20; /* Fond bleu pour les messages de l'utilisateur */
     color: #ffffff; /* Texte blanc */
     border-bottom-right-radius: 0;
 }
@@ -477,7 +477,7 @@ img {
 
 #send-btn {
     padding: 10px 15px;
-    background-color: #007bff;
+    background-color: #ffcb20;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -545,14 +545,14 @@ ul, ol {
 }
 
 blockquote {
-    border-left: 4px solid #007bff;
+    border-left: 4px solid #ffcb20;
     padding-left: 10px;
     color: #333;
     margin: 10px 0;
 }
 
 a {
-    color: #007bff;
+    color: #ffcb20;
     text-decoration: none;
 }
 
@@ -578,7 +578,7 @@ img {
     position: absolute;
     top: 0;
     left: 0;
-    color: #007bff;
+    color: #ffcb20;
     font-size: 14px;
     animation: typing 1.5s infinite;
 }
