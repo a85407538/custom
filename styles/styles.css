@@ -1,5 +1,5 @@
 body {
-    font-family: Calibri, "Trebuchet MS", Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5; /* Fond clair */
     color: #333; /* Texte sombre */
     display: flex;
@@ -24,24 +24,39 @@ body {
     display: flex;
     justify-content: flex-end;
     padding: 10px;
-    background-color: #9b9b9b; /* Fond bleu pour le header */
+    background-color: #007bff; /* Fond bleu pour le header */
     border-bottom: 1px solid #ddd;
+    flex-wrap: wrap; /* Permettre le retour à la ligne sur mobile */
+    gap: 10px; /* Espacement entre les boutons */
 }
 
 .header button {
-    margin-left: 10px;
     padding: 8px 15px;
-    background-color: #9b9b9b; /* Boutons blancs */
-    color: #434344; /* Texte bleu */
+    background-color: #ffffff; /* Boutons blancs */
+    color: #007bff; /* Texte bleu */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
+    transition: background-color 0.3s ease;
+    flex: 1 1 auto; /* Boutons flexibles pour s'adapter à l'espace disponible */
 }
 
 .header button:hover {
     background-color: #f1f1f1; /* Fond gris clair au survol */
+}
+
+/* Styles pour les écrans mobiles */
+@media (max-width: 768px) {
+    .header {
+        justify-content: center; /* Centrer les boutons sur mobile */
+    }
+
+    .header button {
+        flex: 1 1 100%; /* Boutons prennent toute la largeur sur mobile */
+        margin: 5px 0; /* Espacement vertical entre les boutons */
+    }
 }
 
 #chat-box {
@@ -89,7 +104,7 @@ body {
 
 .message-content {
     max-width: 70%;
-    padding: 0px 10px 0px 10px;
+    padding: 15px;
     border-radius: 10px;
     position: relative;
     background-color: #ffffff; /* Fond blanc pour les messages */
@@ -99,8 +114,8 @@ body {
 }
 
 .message.user .message-content {
-    background-color: #e2e4e6; /* Fond bleu pour les messages de l'utilisateur */
-    color: #000000; /* Texte blanc */
+    background-color: #007bff; /* Fond bleu pour les messages de l'utilisateur */
+    color: #ffffff; /* Texte blanc */
     border-bottom-right-radius: 0;
 }
 
@@ -167,7 +182,7 @@ body {
 /* Styles pour les blocs de code */
 pre {
     background-color: #2d2d2d; /* Fond sombre pour les blocs de code */
-    padding: 0px;
+    padding: 15px;
     border-radius: 8px;
     overflow-x: auto;
     border: 1px solid #444;
@@ -224,6 +239,31 @@ img {
     border-radius: 5px;
 }
 
+/* Indicateur de chargement */
+.typing-animation {
+    display: inline-block;
+    position: relative;
+    width: 120px;
+    height: 20px;
+}
+
+.typing-animation::after {
+    content: "Loading data...";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #007bff;
+    font-size: 14px;
+    animation: typing 1.5s infinite;
+}
+
+@keyframes typing {
+    0% { content: "Loading data"; }
+    33% { content: "Loading data."; }
+    66% { content: "Loading data.."; }
+    100% { content: "Loading data..."; }
+}
+
 /* Pour les navigateurs WebKit (Chrome, Safari, etc.) */
 ::-webkit-scrollbar {
     width: 2mm; /* Largeur de la scrollbar */
@@ -241,42 +281,4 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #555; /* Couleur de la poignée au survol */
-}
-/* Styles pour mobile */
-@media (max-width: 768px) {
-    .chat-container {
-        width: 100%;
-        height: 100%;
-        border-radius: 0; /* Supprimer les coins arrondis sur mobile */
-    }
-
-    .header {
-        flex-direction: column; /* Empiler les boutons verticalement */
-        align-items: center; /* Centrer les boutons */
-    }
-
-    .header button {
-        margin: 5px 0; /* Ajuster les marges des boutons */
-    }
-
-    .message-content {
-        max-width: 90%; /* Augmenter la largeur maximale des messages */
-    }
-
-    #user-input {
-        max-height: 100px; /* Réduire la hauteur maximale de l'input */
-        width: 93%; /* Augmenter la largeur de l'input */
-        
-    }
-
-    .input-container{
-        flex-direction: column;
-    }
-
-    #send-btn {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    /* Ajustez les autres éléments si nécessaire */
 }

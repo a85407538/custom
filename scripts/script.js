@@ -7,7 +7,6 @@ const techBtn = document.getElementById('tech-btn');
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
 const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
-const errorMessage = "Désolé, une erreur s'est produite. Veuillez réessayer."
 
 let referenceCounter = 1; // Compteur pour les références
 let context = ''; // Contexte de recherche
@@ -49,13 +48,11 @@ async function sendMessage() {
         const typingIndicator = addTypingIndicator();
         const aiMessage = await getAIResponse(userMessage);
         removeTypingIndicator(typingIndicator);
-        addMessage('ai', aiMessage);
+        displayResponseIncrementally(aiMessage); // Afficher la réponse progressivement
 
         // Ajouter le message à l'historique de la conversation
         conversationHistory.push({ role: 'user', content: userMessage });
-        if(aiMessage != errorMessage){
-            conversationHistory.push({ role: 'ai', content: aiMessage });
-        }
+        conversationHistory.push({ role: 'ai', content: aiMessage });
     }
 }
 
@@ -84,7 +81,7 @@ async function getAIResponse(userMessage) {
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error('Erreur lors de la récupération de la réponse de Gemini:', error);
-        return errorMessage;
+        return "Désolé, une erreur s'est produite. Veuillez réessayer.";
     }
 }
 
@@ -115,7 +112,7 @@ function addTypingIndicator() {
     typingIndicator.classList.add('message', 'ai');
     typingIndicator.innerHTML = `
         <div class="avatar">AI</div>
-        <div class="message-content typing-animation">...</div>
+        <div class="message-content typing-animation"></div>
     `;
     chatBox.appendChild(typingIndicator);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -124,4 +121,29 @@ function addTypingIndicator() {
 
 function removeTypingIndicator(typingIndicator) {
     typingIndicator.remove();
+}
+
+function displayResponseIncrementally(response) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', 'ai');
+
+    const messageContent = document.createElement('div');
+    messageContent.classList.add('message-content');
+    messageElement.appendChild(messageContent);
+    chatBox.appendChild(messageElement);
+
+    let index = 0;
+    const interval = setInterval(() => {
+        if (index < response.length) {
+            messageContent.innerHTML = formatMarkdown(response.substring(0, index + 1));
+            chatBox.scrollTop = chatBox.scrollHeight;
+            index++;
+        } else {
+            clearInterval(interval);
+            // Appliquer la coloration syntaxique aux blocs de code
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+        }
+    }, 20); // Ajustez la vitesse d'affichage ici (en millisecondes)
 }
