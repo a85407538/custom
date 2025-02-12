@@ -3,6 +3,8 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const translateBtn = document.getElementById('translate-btn');
 const techBtn = document.getElementById('tech-btn');
+const translateBtnDesktop = document.getElementById('translate-btn-desktop');
+const techBtnDesktop = document.getElementById('tech-btn-desktop');
 
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
@@ -27,12 +29,23 @@ userInput.addEventListener('input', () => {
     userInput.style.height = `${userInput.scrollHeight}px`;
 });
 
+// Gestion des boutons (mobile et desktop)
 translateBtn.addEventListener('click', () => {
     context = 'translation';
     addMessage('ai', 'Mode traduction activé.');
 });
 
 techBtn.addEventListener('click', () => {
+    context = 'technical';
+    addMessage('ai', 'Mode sujets techniques activé.');
+});
+
+translateBtnDesktop.addEventListener('click', () => {
+    context = 'translation';
+    addMessage('ai', 'Mode traduction activé.');
+});
+
+techBtnDesktop.addEventListener('click', () => {
     context = 'technical';
     addMessage('ai', 'Mode sujets techniques activé.');
 });
