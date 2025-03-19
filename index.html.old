@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> - </title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/all.min.css">
+    <!-- Ajoutez highlight.js pour la coloration syntaxique -->
+    <link rel="stylesheet" href="styles/default.min.css">
+</head>
+<body>
+<div class="chat-container">
+    <div class="header">
+        <!-- Menu dropdown pour mobile -->
+        <div class="dropdown">
+            <button class="dropbtn"><i class="fas fa-bars"></i></button>
+            <div class="dropdown-content">
+                <a href="#" id="translate-btn"><i class="fas fa-language"></i></a>
+                <a href="#" id="tech-btn"><i class="fas fa-cogs"></i></a>
+            </div>
+        </div>
+        <!-- Boutons pour desktop -->
+        <div class="desktop-buttons">
+            <button id="translate-btn-desktop"><i class="fas fa-language"></i></button>
+            <button id="tech-btn-desktop"><i class="fas fa-cogs"></i></button>
+        </div>
+    </div>
+    <div id="chat-box">
+        <!-- Les messages seront ajoutés ici dynamiquement -->
+    </div>
+    <div class="input-container">
+        <textarea id="user-input" placeholder="Tapez votre message..." autocomplete="off"></textarea>
+        <button id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+</div>
+<!-- Ajoutez marked.js pour le rendu Markdown -->
+<script src="scripts/marked.min.js"></script>
+<!-- Ajoutez highlight.js pour la coloration syntaxique -->
+<script src="scripts/highlight.min.js"></script>
+<script src="scripts/script.js"></script>
+</body>
+</html>
