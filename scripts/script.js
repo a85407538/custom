@@ -89,12 +89,6 @@ function addMessage(sender, message) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
 
-    // Ajouter l'avatar
-    const avatar = document.createElement('div');
-    avatar.classList.add('avatar');
-    avatar.textContent = sender === 'user' ? 'Vous' : 'IA';
-    messageElement.appendChild(avatar);
-
     const messageContent = document.createElement('div');
     messageContent.classList.add('message-content');
     messageContent.innerHTML = formatMarkdown(message); // Formater le Markdown
@@ -116,13 +110,8 @@ function formatMarkdown(message) {
 function addTypingIndicator() {
     const typingIndicator = document.createElement('div');
     typingIndicator.classList.add('message', 'ai');
-    
-    const avatar = document.createElement('div');
-    avatar.classList.add('avatar');
-    avatar.textContent = 'IA';
-    typingIndicator.appendChild(avatar);
-    
     typingIndicator.innerHTML = `
+        <div class="avatar">AI</div>
         <div class="message-content typing-animation">...</div>
     `;
     chatBox.appendChild(typingIndicator);
