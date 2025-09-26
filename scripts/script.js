@@ -6,7 +6,7 @@ const techBtn = document.getElementById('tech-btn');
 
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
-const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey;
+const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
 
 let referenceCounter = 1; // Compteur pour les références
 let context = ''; // Contexte de recherche
@@ -58,18 +58,59 @@ async function sendMessage() {
 
 async function getAIResponse(userMessage) {
     try {
+        // Construire l'historique de conversation pour le contexte
+        const messages = [];
+        
+        // Ajouter l'historique récent (derniers 10 messages pour éviter de dépasser les limites)
+        const recentHistory = conversationHistory.slice(-10);
+        for (const msg of recentHistory) {
+            messages.push({
+                parts: [{ text: msg.content }]
+            });
+        }
+        
+        // Ajouter le message actuel
+        const currentMessage = context ? `${context}: ${userMessage}` : userMessage;
+        messages.push({
+            parts: [{ text: currentMessage }]
+        });
+
         // Préparer le payload pour l'API Gemini
         const requestBody = {
-            contents: [{
-                parts: [{
-                    text: context ? `${context}: ${userMessage}` : userMessage
-                }]
-            }],
+            contents: messages,
             generationConfig: {
                 temperature: 0.7,
-                topK: 40,
+                topK: 64,
                 topP: 0.95,
-                maxOutputTokens: 1024,
+                maxOutputTokens: 8192,
+            },
+            safetySettings: [
+                {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_HATE_SPEECH",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                }
+            ]
+        };
+
+        // Si c'est le premier message, simplifier la structure
+        if (conversationHistory.length === 0) {
+            requestBody.contents = [{
+                parts: [{
+                    text: currentMessage
+                }]
+            }];
             }
         };
 
@@ -94,7 +135,7 @@ async function getAIResponse(userMessage) {
             } else if (response.status === 403) {
                 throw new Error('Accès refusé. Vérifiez que votre clé API Gemini est valide et active.');
             } else if (response.status === 404) {
-                throw new Error('API non trouvée. Vérifiez l\'URL de l\'API Gemini.');
+                throw new Error('Modèle non trouvé. Le modèle Gemini Pro a été remplacé par Gemini 1.5 Flash.');
             } else if (response.status === 429) {
                 throw new Error('Limite de taux dépassée. Attendez un moment avant de réessayer.');
             } else {
@@ -112,10 +153,22 @@ async function getAIResponse(userMessage) {
         
         if (!data.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
             console.error('Structure de réponse inattendue:', data);
-            throw new Error('Aucune réponse générée par l\'IA');
+            
+            // Vérifier si la réponse a été bloquée par les filtres de sécurité
+            if (data.promptFeedback && data.promptFeedback.blockReason) {
+                throw new Error(`Réponse bloquée: ${data.promptFeedback.blockReason}. Essayez de reformuler votre question.`);
+            }
+            
+            throw new Error('Aucune réponse générée par l\'IA. Essayez de reformuler votre question.');
         }
         
         const candidate = data.candidates[0];
+        
+        // Vérifier si la réponse a été bloquée
+        if (candidate.finishReason === 'SAFETY') {
+            throw new Error('Réponse bloquée par les filtres de sécurité. Essayez de reformuler votre question.');
+        }
+        
         if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
             console.error('Contenu de réponse invalide:', candidate);
             throw new Error('Contenu de réponse invalide');
