@@ -6,7 +6,7 @@ const techBtn = document.getElementById('tech-btn');
 
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
-const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + apiKey;
 
 let referenceCounter = 1; // Compteur pour les références
 let context = ''; // Contexte de recherche
@@ -79,27 +79,29 @@ async function getAIResponse(userMessage) {
         const requestBody = {
             contents: messages,
             generationConfig: {
-                temperature: 0.7,
-                topK: 64,
+                temperature: 0.9,
+                topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 8192,
+                maxOutputTokens: 2048,
+                candidateCount: 1,
+                stopSequences: []
             },
             safetySettings: [
                 {
                     category: "HARM_CATEGORY_HARASSMENT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_HATE_SPEECH",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 }
             ]
         };
