@@ -111,8 +111,7 @@ async function getAIResponse(userMessage) {
                     text: currentMessage
                 }]
             }];
-            }
-        };
+        }
 
         console.log('Envoi de la requête à l\'API Gemini:', requestBody);
 
