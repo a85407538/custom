@@ -77,11 +77,43 @@ async function getAIResponse(userMessage) {
             }),
         });
 
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
+        }
+
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        
+        // Vérification de la structure de la réponse
+        if (!data) {
+            throw new Error('Réponse vide de l\'API');
+        }
+        
+        if (!data.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
+            console.error('Structure de réponse inattendue:', data);
+            throw new Error('Aucune réponse générée par l\'IA');
+        }
+        
+        const candidate = data.candidates[0];
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+            console.error('Contenu de réponse invalide:', candidate);
+            throw new Error('Contenu de réponse invalide');
+        }
+        
+        return candidate.content.parts[0].text || 'Réponse vide reçue';
+        
     } catch (error) {
         console.error('Erreur lors de la récupération de la réponse de Gemini:', error);
-        return "Désolé, une erreur s'est produite. Veuillez réessayer.";
+        
+        // Messages d'erreur plus spécifiques
+        if (error.message.includes('HTTP')) {
+            return "Erreur de connexion à l'API. Vérifiez votre clé API et votre connexion internet.";
+        } else if (error.message.includes('JSON')) {
+            return "Erreur de format de réponse. L'API a retourné une réponse invalide.";
+        } else if (error.message.includes('candidates')) {
+            return "L'IA n'a pas pu générer de réponse. Essayez de reformuler votre question.";
+        } else {
+            return `Erreur: ${error.message}. Veuillez réessayer.`;
+        }
     }
 }
 
