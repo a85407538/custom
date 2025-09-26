@@ -6,7 +6,7 @@ const techBtn = document.getElementById('tech-btn');
 
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
-const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
 
 let referenceCounter = 1; // Compteur pour les références
 let context = ''; // Contexte de recherche
