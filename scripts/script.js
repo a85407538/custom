@@ -3,7 +3,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
 // Remplacez par votre clé API Gemini
-const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
+const apiKey = 'AIzaSyBTjg1_GwDj1UpSUN_H41QHe354nig4eGk';
 const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
 
 let referenceCounter = 1; // Compteur pour les références
