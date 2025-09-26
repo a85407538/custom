@@ -1,94 +1,199 @@
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
+const clearChatBtn = document.getElementById('clear-chat');
+const settingsBtn = document.getElementById('settings-btn');
+const loadingOverlay = document.getElementById('loading-overlay');
 
-// Remplacez par votre clé API Gemini
+// Configuration API
 const apiKey = 'AIzaSyBTjg1_GwDj1UpSUN_H41QHe354nig4eGk';
-const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
+const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + apiKey;
 
-let referenceCounter = 1; // Compteur pour les références
-let conversationHistory = []; // Historique de la conversation
+let conversationHistory = [];
+let isTyping = false;
 
-// Envoi du message via le bouton ou la touche Entrée
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // Empêcher le saut de ligne
-        sendMessage();
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    initializeChat();
+    setupEventListeners();
+    createParticles();
+});
+
+function initializeChat() {
+    // Masquer le message de bienvenue après la première interaction
+    const welcomeMessage = document.querySelector('.welcome-message');
+    if (welcomeMessage && conversationHistory.length > 0) {
+        welcomeMessage.style.display = 'none';
     }
-});
+}
 
-// Gérer l'agrandissement de la zone d'input
-userInput.addEventListener('input', () => {
+function setupEventListeners() {
+    // Envoi de message
+    sendBtn.addEventListener('click', handleSendMessage);
+    userInput.addEventListener('keydown', handleKeyPress);
+    
+    // Actions rapides
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const message = e.currentTarget.dataset.message;
+            userInput.value = message;
+            handleSendMessage();
+        });
+    });
+    
+    // Boutons d'action
+    clearChatBtn.addEventListener('click', clearChat);
+    settingsBtn.addEventListener('click', toggleSettings);
+    
+    // Auto-resize textarea
+    userInput.addEventListener('input', autoResizeTextarea);
+    
+    // Gestion du focus
+    userInput.addEventListener('focus', () => {
+        document.querySelector('.input-wrapper').classList.add('focused');
+    });
+    
+    userInput.addEventListener('blur', () => {
+        document.querySelector('.input-wrapper').classList.remove('focused');
+    });
+}
+
+function handleKeyPress(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
+}
+
+function autoResizeTextarea() {
     userInput.style.height = 'auto';
-    userInput.style.height = `${userInput.scrollHeight}px`;
-});
+    userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+    
+    // Activer/désactiver le bouton d'envoi
+    sendBtn.disabled = !userInput.value.trim() || isTyping;
+}
 
-async function sendMessage() {
-    const userMessage = userInput.value.trim();
-    if (userMessage) {
-        addMessage('user', userMessage);
-        userInput.value = '';
-        userInput.style.height = 'auto'; // Réinitialiser la hauteur de l'input
-
-        // Simuler une réponse en cours de frappe
-        const typingIndicator = addTypingIndicator();
-        const aiMessage = await getAIResponse(userMessage);
+async function handleSendMessage() {
+    const message = userInput.value.trim();
+    if (!message || isTyping) return;
+    
+    // Masquer le message de bienvenue
+    const welcomeMessage = document.querySelector('.welcome-message');
+    if (welcomeMessage) {
+        welcomeMessage.style.display = 'none';
+    }
+    
+    // Ajouter le message utilisateur
+    addMessage('user', message);
+    
+    // Réinitialiser l'input
+    userInput.value = '';
+    autoResizeTextarea();
+    
+    // Afficher l'indicateur de frappe
+    const typingIndicator = addTypingIndicator();
+    
+    try {
+        // Obtenir la réponse de l'IA
+        const aiResponse = await getAIResponse(message);
+        
+        // Supprimer l'indicateur de frappe
         removeTypingIndicator(typingIndicator);
-        addMessage('ai', aiMessage);
-
-        // Ajouter le message à l'historique de la conversation
-        conversationHistory.push({ role: 'user', content: userMessage });
-        conversationHistory.push({ role: 'ai', content: aiMessage });
+        
+        // Ajouter la réponse de l'IA
+        addMessage('ai', aiResponse);
+        
+        // Mettre à jour l'historique
+        conversationHistory.push(
+            { role: 'user', content: message },
+            { role: 'ai', content: aiResponse }
+        );
+        
+    } catch (error) {
+        removeTypingIndicator(typingIndicator);
+        addMessage('ai', "Désolé, une erreur s'est produite. Veuillez réessayer.");
+        console.error('Erreur API:', error);
     }
 }
 
 async function getAIResponse(userMessage) {
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    const requestBody = {
+        contents: [
+            ...conversationHistory.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }]
+            })),
+            {
+                role: 'user',
+                parts: [{ text: userMessage }]
+            }
+        ],
+        generationConfig: {
+            temperature: 0.9,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+        },
+        safetySettings: [
+            {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_ONLY_HIGH"
             },
-            body: JSON.stringify({
-                contents: [
-                    ...conversationHistory.map(msg => ({
-                        role: msg.role === 'user' ? 'user' : 'model',
-                        parts: [{ text: msg.content }],
-                    })),
-                    {
-                        role: 'user',
-                        parts: [{ text: userMessage }],
-                    },
-                ],
-            }),
-        });
+            {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_ONLY_HIGH"
+            }
+        ]
+    };
 
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
-    } catch (error) {
-        console.error('Erreur lors de la récupération de la réponse de Gemini:', error);
-        return "Désolé, une erreur s'est produite. Veuillez réessayer.";
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            throw new Error('Modèle non trouvé. Vérifiez la configuration de l\'API.');
+        }
+        throw new Error(`Erreur API: ${response.status}`);
     }
+
+    const data = await response.json();
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('Réponse invalide de l\'API');
+    }
+
+    return data.candidates[0].content.parts[0].text;
 }
 
 function addMessage(sender, message) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
-
-    // Ajouter l'avatar
+    
+    // Avatar
     const avatar = document.createElement('div');
-    avatar.classList.add('avatar');
-    avatar.textContent = sender === 'user' ? 'U' : 'AI';
-    if (sender === 'user') {
-        avatar.classList.add('user');
-    }
-    messageElement.appendChild(avatar);
-
+    avatar.classList.add('message-avatar');
+    avatar.innerHTML = sender === 'user' ? 
+        '<i class="fas fa-user"></i>' : 
+        '<i class="fas fa-robot"></i>';
+    
+    // Contenu du message
     const messageContent = document.createElement('div');
     messageContent.classList.add('message-content');
     
-    // Traiter le message pour les références et sources
+    // Traitement du message pour les références et sources
     const processedMessage = processReferencesAndSources(message);
     messageContent.innerHTML = formatMarkdown(processedMessage.content);
     
@@ -98,16 +203,57 @@ function addMessage(sender, message) {
         messageContent.appendChild(referencesSection);
     }
     
+    // Assemblage du message
+    messageElement.appendChild(avatar);
     messageElement.appendChild(messageContent);
+    
+    // Ajout au chat
     chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    // Post-traitement pour améliorer l'affichage
+    scrollToBottom();
+    
+    // Post-traitement
     setTimeout(() => {
         enhanceCodeBlocks();
         highlightSyntax();
         processLinks();
     }, 100);
+}
+
+function addTypingIndicator() {
+    isTyping = true;
+    sendBtn.disabled = true;
+    
+    const typingElement = document.createElement('div');
+    typingElement.classList.add('message', 'ai', 'typing-message');
+    typingElement.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span>L'IA réfléchit</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatBox.appendChild(typingElement);
+    scrollToBottom();
+    
+    return typingElement;
+}
+
+function removeTypingIndicator(typingElement) {
+    isTyping = false;
+    sendBtn.disabled = !userInput.value.trim();
+    
+    if (typingElement && typingElement.parentNode) {
+        typingElement.remove();
+    }
 }
 
 function processReferencesAndSources(message) {
@@ -155,7 +301,7 @@ function createReferencesSection(references) {
         
         // Détecter et formater les URLs
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        let refText = ref.text.replace(urlRegex, '<a href="$1" target="_blank" class="source-link">$1</a>');
+        let refText = ref.text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         
         listItem.innerHTML = refText;
         list.appendChild(listItem);
@@ -173,7 +319,7 @@ function enhanceCodeBlocks() {
             
             const copyBtn = document.createElement('button');
             copyBtn.classList.add('copy-btn');
-            copyBtn.textContent = 'Copier';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copier';
             copyBtn.onclick = () => copyToClipboard(pre.textContent, copyBtn);
             
             pre.parentNode.insertBefore(container, pre);
@@ -185,11 +331,16 @@ function enhanceCodeBlocks() {
 
 function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.textContent;
-        button.textContent = 'Copié !';
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copié !';
+        button.style.background = 'rgba(76, 175, 80, 0.2)';
+        
         setTimeout(() => {
-            button.textContent = originalText;
+            button.innerHTML = originalHTML;
+            button.style.background = '';
         }, 2000);
+    }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
     });
 }
 
@@ -202,17 +353,25 @@ function highlightSyntax() {
 }
 
 function processLinks() {
-    // Améliorer l'affichage des liens externes
     document.querySelectorAll('a[href^="http"]').forEach(link => {
-        if (!link.classList.contains('source-link') && !link.classList.contains('reference')) {
+        if (!link.classList.contains('reference')) {
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
+            
+            // Ajouter une icône pour les liens externes
+            if (!link.querySelector('.external-icon')) {
+                const icon = document.createElement('i');
+                icon.classList.add('fas', 'fa-external-link-alt', 'external-icon');
+                icon.style.marginLeft = '0.25rem';
+                icon.style.fontSize = '0.8em';
+                link.appendChild(icon);
+            }
         }
     });
 }
 
 function formatMarkdown(message) {
-    // Configuration avancée de marked.js
+    // Configuration de marked.js
     marked.setOptions({
         highlight: function(code, lang) {
             if (lang && hljs.getLanguage(lang)) {
@@ -228,31 +387,82 @@ function formatMarkdown(message) {
         sanitize: false
     });
     
-    // Traitement personnalisé pour les éléments spéciaux
     let processedMessage = message;
     
-    // Améliorer les citations avec ==texte==
+    // Traitement des éléments spéciaux
     processedMessage = processedMessage.replace(/==(.*?)==/g, '<mark>$1</mark>');
-    
-    // Traiter les scripts et formules mathématiques basiques
     processedMessage = processedMessage.replace(/\$\$(.*?)\$\$/g, '<code class="math">$1</code>');
     processedMessage = processedMessage.replace(/\$(.*?)\$/g, '<code class="math-inline">$1</code>');
     
     return marked.parse(processedMessage);
 }
 
-function addTypingIndicator() {
-    const typingIndicator = document.createElement('div');
-    typingIndicator.classList.add('message', 'ai');
-    typingIndicator.innerHTML = `
-        <div class="avatar">AI</div>
-        <div class="message-content typing-animation">...</div>
-    `;
-    chatBox.appendChild(typingIndicator);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    return typingIndicator;
+function clearChat() {
+    // Animation de disparition
+    const messages = chatBox.querySelectorAll('.message');
+    messages.forEach((message, index) => {
+        setTimeout(() => {
+            message.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => message.remove(), 300);
+        }, index * 50);
+    });
+    
+    // Réinitialiser l'historique
+    setTimeout(() => {
+        conversationHistory = [];
+        
+        // Réafficher le message de bienvenue
+        const welcomeMessage = document.querySelector('.welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'block';
+            welcomeMessage.style.animation = 'fadeInUp 0.8s ease-out';
+        }
+    }, messages.length * 50 + 300);
 }
 
-function removeTypingIndicator(typingIndicator) {
-    typingIndicator.remove();
+function toggleSettings() {
+    // Placeholder pour les paramètres
+    alert('Paramètres - Fonctionnalité à venir !');
 }
+
+function scrollToBottom() {
+    chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+
+function createParticles() {
+    const particlesContainer = document.getElementById('particles-background');
+    const particleCount = 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.style.position = 'absolute';
+        particle.style.width = Math.random() * 4 + 1 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.background = 'rgba(102, 126, 234, 0.1)';
+        particle.style.borderRadius = '50%';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animation = `float ${Math.random() * 10 + 10}s ease-in-out infinite`;
+        particle.style.animationDelay = Math.random() * 10 + 's';
+        
+        particlesContainer.appendChild(particle);
+    }
+}
+
+// Animation CSS pour fadeOut
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-20px); }
+    }
+`;
+document.head.appendChild(style);
+
+// Focus automatique sur l'input au chargement
+window.addEventListener('load', () => {
+    userInput.focus();
+});
