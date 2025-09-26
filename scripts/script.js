@@ -6,7 +6,7 @@ const techBtn = document.getElementById('tech-btn');
 
 // Remplacez par votre clé API Gemini
 const apiKey = 'AIzaSyAL4GPw5_5mgrkqNXL_aXDioFkTX8qto08';
-const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey;
 
 let referenceCounter = 1; // Compteur pour les références
 let context = ''; // Contexte de recherche
@@ -29,12 +29,12 @@ userInput.addEventListener('input', () => {
 
 translateBtn.addEventListener('click', () => {
     context = 'translation';
-    addMessage('ai', 'Mode traduction activé.');
+    addMessage('ai', '🌐 Mode traduction activé. Je peux maintenant vous aider avec vos traductions.');
 });
 
 techBtn.addEventListener('click', () => {
     context = 'technical';
-    addMessage('ai', 'Mode sujets techniques activé.');
+    addMessage('ai', '⚡ Mode technique activé. Je suis prêt à discuter de sujets techniques.');
 });
 
 async function sendMessage() {
@@ -58,30 +58,52 @@ async function sendMessage() {
 
 async function getAIResponse(userMessage) {
     try {
+        // Préparer le payload pour l'API Gemini
+        const requestBody = {
+            contents: [{
+                parts: [{
+                    text: context ? `${context}: ${userMessage}` : userMessage
+                }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+            }
+        };
+
+        console.log('Envoi de la requête à l\'API Gemini:', requestBody);
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                contents: [
-                    ...conversationHistory.map(msg => ({
-                        role: msg.role === 'user' ? 'user' : 'model',
-                        parts: [{ text: msg.content }],
-                    })),
-                    {
-                        role: 'user',
-                        parts: [{ text: context + ' ' + userMessage }],
-                    },
-                ],
-            }),
+            body: JSON.stringify(requestBody)
         });
 
+        console.log('Statut de la réponse:', response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('Erreur de l\'API:', errorText);
+            
+            if (response.status === 400) {
+                throw new Error('Requête invalide. Vérifiez votre clé API Gemini.');
+            } else if (response.status === 403) {
+                throw new Error('Accès refusé. Vérifiez que votre clé API Gemini est valide et active.');
+            } else if (response.status === 404) {
+                throw new Error('API non trouvée. Vérifiez l\'URL de l\'API Gemini.');
+            } else if (response.status === 429) {
+                throw new Error('Limite de taux dépassée. Attendez un moment avant de réessayer.');
+            } else {
+                throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
+            }
         }
 
         const data = await response.json();
+        console.log('Réponse de l\'API:', data);
         
         // Vérification de la structure de la réponse
         if (!data) {
@@ -106,7 +128,7 @@ async function getAIResponse(userMessage) {
         
         // Messages d'erreur plus spécifiques
         if (error.message.includes('HTTP')) {
-            return "Erreur de connexion à l'API. Vérifiez votre clé API et votre connexion internet.";
+            return error.message;
         } else if (error.message.includes('JSON')) {
             return "Erreur de format de réponse. L'API a retourné une réponse invalide.";
         } else if (error.message.includes('candidates')) {
