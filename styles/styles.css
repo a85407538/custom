@@ -316,7 +316,7 @@ body {
 
 .message-content {
     max-width: 70%;
-    padding: 1.5rem;
+    padding: 0 20px 0 20px;
     border-radius: var(--border-radius);
     position: relative;
     line-height: 1.6;
